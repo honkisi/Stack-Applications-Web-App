@@ -1,0 +1,370 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browser History Management System</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+    }
+
+    .container {
+      max-width: 850px;
+      margin: 30px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      text-align: center;
+      color: #12345a;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #64748b;
+      margin-bottom: 25px;
+    }
+
+    .address-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+
+    button {
+      padding: 11px 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      background: #12345a;
+      color: white;
+    }
+
+    button:hover {
+      opacity: 0.85;
+    }
+
+    button:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .navigation {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    .navigation button {
+      flex: 1;
+    }
+
+    .current-page {
+      padding: 20px;
+      border-radius: 8px;
+      background: #eaf2ff;
+      border: 1px solid #bfdbfe;
+      margin-bottom: 25px;
+      overflow-wrap: anywhere;
+    }
+
+    .current-page h2 {
+      margin-top: 0;
+      color: #12345a;
+    }
+
+    .stacks {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .stack-box {
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 15px;
+      min-width: 0;
+    }
+
+    .stack-box h3 {
+      color: #12345a;
+      text-align: center;
+    }
+
+    .stack-item {
+      background: #f1f5f9;
+      padding: 10px;
+      margin: 7px 0;
+      border-radius: 5px;
+      overflow-wrap: anywhere;
+      font-size: 14px;
+    }
+
+    .top-item {
+      background: #dbeafe;
+      border: 1px solid #60a5fa;
+      font-weight: bold;
+    }
+
+    .empty {
+      text-align: center;
+      color: #94a3b8;
+      padding: 12px;
+    }
+
+    .message {
+      text-align: center;
+      min-height: 22px;
+      color: #166534;
+      margin: 15px 0;
+    }
+
+    .clear-button {
+      display: block;
+      margin: 20px auto 0;
+      background: #c72c3b;
+    }
+
+    .explanation {
+      margin-top: 25px;
+      padding: 15px;
+      background: #f8fafc;
+      border-left: 4px solid #12345a;
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      color: #64748b;
+      font-size: 13px;
+      margin-top: 25px;
+    }
+
+    @media (max-width: 600px) {
+      .stacks {
+        grid-template-columns: 1fr;
+      }
+
+      .address-bar {
+        flex-direction: column;
+      }
+
+      .navigation button {
+        padding: 10px 5px;
+      }
+
+      .container {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Browser History Management System</h1>
+    <p class="subtitle">
+      Demonstrating the Stack Data Structure using LIFO
+    </p>
+
+    <div class="address-bar">
+      <input
+        type="text"
+        id="pageInput"
+        placeholder="Enter a page name, e.g. Google"
+      >
+      <button onclick="visitPage()">Visit Page</button>
+    </div>
+
+    <div class="navigation">
+      <button id="backButton" onclick="goBack()">&#8592; Back</button>
+      <button id="forwardButton" onclick="goForward()">Forward &#8594;</button>
+    </div>
+
+    <div class="current-page">
+      <h2>Current Page</h2>
+      <p id="currentPage">No page visited yet.</p>
+    </div>
+
+    <div class="stacks">
+      <div class="stack-box">
+        <h3>Back Stack</h3>
+        <p class="subtitle">Pages you can return to</p>
+        <div id="backStack"></div>
+      </div>
+
+      <div class="stack-box">
+        <h3>Forward Stack</h3>
+        <p class="subtitle">Pages you can revisit</p>
+        <div id="forwardStack"></div>
+      </div>
+    </div>
+
+    <p class="message" id="message" aria-live="polite">
+      Enter a page name to begin.
+    </p>
+
+    <button class="clear-button" onclick="clearHistory()">
+      Clear History
+    </button>
+
+    <div class="explanation">
+      <h3>How stacks work in this application</h3>
+      <p><strong>Push:</strong> Adds a page to a stack.</p>
+      <p><strong>Pop:</strong> Removes the most recent page from a stack.</p>
+      <p><strong>LIFO:</strong> Last In, First Out. The last page stored is the first page retrieved.</p>
+      <p><strong>Back:</strong> Moves the current page to the Forward Stack and retrieves the last page from the Back Stack.</p>
+      <p><strong>Forward:</strong> Moves the current page to the Back Stack and retrieves the last page from the Forward Stack.</p>
+    </div>
+
+    <footer>
+      Data Structures Assignment | Browser History Using Stacks
+    </footer>
+  </div>
+
+  <script>
+    // The two arrays represent stacks.
+    const backStack = [];
+    const forwardStack = [];
+    let currentPage = "";
+
+    function visitPage() {
+      const input = document.getElementById("pageInput");
+      const page = input.value.trim();
+
+      if (page === "") {
+        showMessage("Please enter a page name.");
+        return;
+      }
+
+      if (currentPage !== "") {
+        backStack.push(currentPage);
+      }
+
+      currentPage = page;
+      forwardStack.length = 0;
+
+      input.value = "";
+      showMessage("Successfully visited: " + page);
+      render();
+    }
+
+    function goBack() {
+      if (backStack.length === 0) {
+        showMessage("No previous page available.");
+        return;
+      }
+
+      forwardStack.push(currentPage);
+      currentPage = backStack.pop();
+
+      showMessage("Moved back to: " + currentPage);
+      render();
+    }
+
+    function goForward() {
+      if (forwardStack.length === 0) {
+        showMessage("No forward page available.");
+        return;
+      }
+
+      backStack.push(currentPage);
+      currentPage = forwardStack.pop();
+
+      showMessage("Moved forward to: " + currentPage);
+      render();
+    }
+
+    function clearHistory() {
+      backStack.length = 0;
+      forwardStack.length = 0;
+      currentPage = "";
+
+      showMessage("Browser history has been cleared.");
+      render();
+    }
+
+    function showMessage(message) {
+      document.getElementById("message").textContent = message;
+    }
+
+    function displayStack(elementId, stack) {
+      const container = document.getElementById(elementId);
+      container.replaceChildren();
+
+      if (stack.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "empty";
+        empty.textContent = "Stack is empty";
+        container.appendChild(empty);
+        return;
+      }
+
+      for (let i = stack.length - 1; i >= 0; i--) {
+        const item = document.createElement("div");
+        item.className = "stack-item";
+
+        if (i === stack.length - 1) {
+          item.classList.add("top-item");
+          item.textContent = "TOP: " + stack[i];
+        } else {
+          item.textContent = stack[i];
+        }
+
+        container.appendChild(item);
+      }
+    }
+
+    function render() {
+      document.getElementById("currentPage").textContent =
+        currentPage || "No page visited yet.";
+
+      document.getElementById("backButton").disabled =
+        backStack.length === 0;
+
+      document.getElementById("forwardButton").disabled =
+        forwardStack.length === 0;
+
+      displayStack("backStack", backStack);
+      displayStack("forwardStack", forwardStack);
+    }
+
+    document.getElementById("pageInput").addEventListener(
+      "keydown",
+      function(event) {
+        if (event.key === "Enter") {
+          visitPage();
+        }
+      }
+    );
+
+    render();
+  </script>
+</body>
+</html>
